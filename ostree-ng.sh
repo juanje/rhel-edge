@@ -55,11 +55,6 @@ echo -e "\033[0m"
 # Get OS data.
 source /etc/os-release
 
-# Customize repository
-sudo mkdir -p /etc/osbuild-composer/repositories
-sudo cp files/rhel-8-4-0.json /etc/osbuild-composer/repositories/rhel-8-beta.json
-sudo ln -sf /etc/osbuild-composer/repositories/rhel-8-beta.json /etc/osbuild-composer/repositories/rhel-8.json
-
 # Colorful output.
 function greenprint {
     echo -e "\033[1;32m${1}\033[0m"
@@ -148,6 +143,7 @@ QUAY_REPO_TAG=$(tr -dc a-z0-9 < /dev/urandom | head -c 4 ; echo '')
 # Set up temporary files.
 TEMPDIR=$(mktemp -d)
 BLUEPRINT_FILE=${TEMPDIR}/blueprint.toml
+SOURCE_FILE=${TEMPDIR}/copr_neptune.toml
 KS_FILE=${TEMPDIR}/ks.cfg
 COMPOSE_START=${TEMPDIR}/compose-start-${IMAGE_KEY}.json
 COMPOSE_INFO=${TEMPDIR}/compose-info-${IMAGE_KEY}.json
@@ -300,6 +296,23 @@ sudo ostree --repo="$PROD_REPO" remote add --no-gpg-verify edge-stage "$STAGE_RE
 ##
 ###########################################################
 
+# Write a source for the Neptune app.
+tee "$SOURCE_FILE" > /dev/null << EOF
+id = "copr_neptune"
+name = "copr_neptune"
+type = "yum-baseurl"
+url = "https://download.copr.fedorainfracloud.org/results/pingou/qtappmanager-fedora/epel-8-x86_64"
+check_gpg = false
+check_ssl = false
+system = false
+EOF
+
+# Add COPR Neptune source
+greenprint "📝 Add COPR Neptune source"
+sudo composer-cli sources add "$SOURCE_FILE"
+sudo composer-cli sources list
+sudo composer-cli sources info copr_neptune
+
 # Write a blueprint for ostree image.
 tee "$BLUEPRINT_FILE" > /dev/null << EOF
 name = "container"
@@ -309,11 +322,300 @@ modules = []
 groups = []
 
 [[packages]]
-name = "python36"
+name = "ModemManager"
 version = "*"
 
-[customizations.kernel]
-name = "kernel-rt"
+[[packages]]
+name = "NetworkManager-adsl"
+version = "*"
+
+[[packages]]
+name = "NetworkManager-ppp"
+version = "*"
+
+[[packages]]
+name = "NetworkManager-wwan"
+version = "*"
+
+[[packages]]
+name = "at-spi2-atk"
+version = "*"
+
+[[packages]]
+name = "at-spi2-core"
+version = "*"
+
+[[packages]]
+name = "avahi"
+version = "*"
+
+[[packages]]
+name = "chrome-gnome-shell"
+version = "*"
+
+[[packages]]
+name = "dconf"
+version = "*"
+
+[[packages]]
+name = "fprintd-pam"
+version = "*"
+
+[[packages]]
+name = "gdm"
+version = "*"
+
+[[packages]]
+name = "glib-networking"
+version = "*"
+
+[[packages]]
+name = "glibc-langpack-en"
+version = "*"
+
+[[packages]]
+name = "gnome-backgrounds"
+version = "*"
+
+[[packages]]
+name = "gnome-bluetooth"
+version = "*"
+
+[[packages]]
+name = "gnome-classic-session"
+version = "*"
+
+[[packages]]
+name = "gnome-color-manager"
+version = "*"
+
+[[packages]]
+name = "gnome-control-center"
+version = "*"
+
+[[packages]]
+name = "gnome-disk-utility"
+version = "*"
+
+[[packages]]
+name = "gnome-initial-setup"
+version = "*"
+
+[[packages]]
+name = "gnome-remote-desktop"
+version = "*"
+
+[[packages]]
+name = "gnome-session-wayland-session"
+version = "*"
+
+[[packages]]
+name = "gnome-session-xsession"
+version = "*"
+
+[[packages]]
+name = "gnome-settings-daemon"
+version = "*"
+
+[[packages]]
+name = "gnome-shell"
+version = "*"
+
+[[packages]]
+name = "gnome-software"
+version = "*"
+
+[[packages]]
+name = "gnome-system-monitor"
+version = "*"
+
+[[packages]]
+name = "gnome-terminal"
+version = "*"
+
+[[packages]]
+name = "gnome-terminal-nautilus"
+version = "*"
+
+[[packages]]
+name = "gnome-user-docs"
+version = "*"
+
+[[packages]]
+name = "gvfs-afc"
+version = "*"
+
+[[packages]]
+name = "gvfs-afp"
+version = "*"
+
+[[packages]]
+name = "gvfs-archive"
+version = "*"
+
+[[packages]]
+name = "gvfs-fuse"
+version = "*"
+
+[[packages]]
+name = "gvfs-goa"
+version = "*"
+
+[[packages]]
+name = "gvfs-gphoto2"
+version = "*"
+
+[[packages]]
+name = "gvfs-mtp"
+version = "*"
+
+[[packages]]
+name = "gvfs-smb"
+version = "*"
+
+[[packages]]
+name = "libcanberra-gtk3"
+version = "*"
+
+[[packages]]
+name = "libproxy-webkitgtk4"
+version = "*"
+
+[[packages]]
+name = "librsvg2"
+version = "*"
+
+[[packages]]
+name = "libsane-hpaio"
+version = "*"
+
+[[packages]]
+name = "mesa-dri-drivers"
+version = "*"
+
+[[packages]]
+name = "mesa-libEGL"
+version = "*"
+
+[[packages]]
+name = "nautilus"
+version = "*"
+
+[[packages]]
+name = "orca"
+version = "*"
+
+[[packages]]
+name = "polkit"
+version = "*"
+
+[[packages]]
+name = "tracker"
+version = "*"
+
+[[packages]]
+name = "tracker-miners"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal-gtk"
+version = "*"
+
+[[packages]]
+name = "xdg-user-dirs-gtk"
+version = "*"
+
+[[packages]]
+name = "yelp"
+version = "*"
+
+[[packages]]
+name = "grub2-efi-ia32"
+version = "*"
+
+[[packages]]
+name = "grub2-efi-x64"
+version = "*"
+
+[[packages]]
+name = "grub2-pc"
+version = "*"
+
+[[packages]]
+name = "ostree-grub2"
+version = "*"
+
+[[packages]]
+name = "efibootmgr"
+version = "*"
+
+[[packages]]
+name = "shim-ia32"
+version = "*"
+
+[[packages]]
+name = "shim-x64"
+version = "*"
+
+[[packages]]
+name = "microcode_ctl"
+version = "*"
+
+[[packages]]
+name = "mcelog"
+version = "*"
+
+[[packages]]
+name = "thermald"
+version = "*"
+
+[[packages]]
+name = "hyperv-daemons"
+version = "*"
+
+[[packages]]
+name = "open-vm-tools-desktop"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-drv-intel"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-drv-vesa"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-drv-vmware"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-server-Xwayland"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal-gtk"
+version = "*"
+
+[[packages]]
+name = "qt5"
+version = "5.15.*"
+
+[[packages]]
+name = "qt5-qtapplicationmanager"
+version = "5.15.*"
+
+[[packages]]
+name = "neptune3-ui"
+version = "*"
 
 [[customizations.user]]
 name = "admin"
@@ -439,6 +741,7 @@ zerombr
 clearpart --all --initlabel --disklabel=msdos
 autopart --nohome --noswap --type=plain
 ostreesetup --nogpg --osname=rhel-edge --remote=rhel-edge --url=file:///ostree/repo --ref=${OSTREE_REF}
+user --name=edge
 poweroff
 %post --log=/var/log/anaconda/post-install.log --erroronfail
 # no sudo password for user admin
@@ -446,6 +749,57 @@ echo -e 'admin\tALL=(ALL)\tNOPASSWD: ALL' >> /etc/sudoers
 # delete local repo and add external repo
 ostree remote delete rhel-edge
 ostree remote add --no-gpg-verify --no-sign-verify rhel-edge ${PROD_REPO_URL}
+
+# Make X start directly
+systemctl set-default graphical.target
+
+# Make sure the 'edge' user has no password
+passwd -d edge
+
+# Create potentially missing directories
+mkdir -p /home/edge/.config/autostart
+
+# Skip gnome's initial setup
+echo 'yes' >  /home/edge/.config/gnome-initial-setup-done
+
+# Automatically start neptune
+cat > /home/edge/.config/autostart/neptune3-ui.desktop << EOF
+[Desktop Entry]
+Type=Application
+Exec=/usr/bin/neptune3-ui
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=neptune3-ui
+Comment[en_US]=Launches neptune3-ui on logging in
+EOF
+
+# Ensure we have no file system permission error
+chown edge:edge -R /home/edge
+
+# Automatically log in as 'edge'
+cat > /etc/gdm/custom.conf << EOF
+## custom.conf
+
+# GDM configuration storage
+
+[daemon]
+# Uncomment the line below to force the login screen to use Xorg
+WaylandEnable=false
+DefaultSession=gnome-xorg.desktop
+AutomaticLoginEnable=True
+AutomaticLogin=edge
+
+[security]
+
+[xdmcp]
+
+[chooser]
+
+[debug]
+# Uncomment the line below to turn on debugging
+#Enable=true
+EOF
 %end
 STOPHERE
 
@@ -563,14 +917,304 @@ modules = []
 groups = []
 
 [[packages]]
-name = "python36"
+name = "ModemManager"
 version = "*"
+
+[[packages]]
+name = "NetworkManager-adsl"
+version = "*"
+
+[[packages]]
+name = "NetworkManager-ppp"
+version = "*"
+
+[[packages]]
+name = "NetworkManager-wwan"
+version = "*"
+
+[[packages]]
+name = "at-spi2-atk"
+version = "*"
+
+[[packages]]
+name = "at-spi2-core"
+version = "*"
+
+[[packages]]
+name = "avahi"
+version = "*"
+
+[[packages]]
+name = "chrome-gnome-shell"
+version = "*"
+
+[[packages]]
+name = "dconf"
+version = "*"
+
+[[packages]]
+name = "fprintd-pam"
+version = "*"
+
+[[packages]]
+name = "gdm"
+version = "*"
+
+[[packages]]
+name = "glib-networking"
+version = "*"
+
+[[packages]]
+name = "glibc-langpack-en"
+version = "*"
+
+[[packages]]
+name = "gnome-backgrounds"
+version = "*"
+
+[[packages]]
+name = "gnome-bluetooth"
+version = "*"
+
+[[packages]]
+name = "gnome-classic-session"
+version = "*"
+
+[[packages]]
+name = "gnome-color-manager"
+version = "*"
+
+[[packages]]
+name = "gnome-control-center"
+version = "*"
+
+[[packages]]
+name = "gnome-disk-utility"
+version = "*"
+
+[[packages]]
+name = "gnome-initial-setup"
+version = "*"
+
+[[packages]]
+name = "gnome-remote-desktop"
+version = "*"
+
+[[packages]]
+name = "gnome-session-wayland-session"
+version = "*"
+
+[[packages]]
+name = "gnome-session-xsession"
+version = "*"
+
+[[packages]]
+name = "gnome-settings-daemon"
+version = "*"
+
+[[packages]]
+name = "gnome-shell"
+version = "*"
+
+[[packages]]
+name = "gnome-software"
+version = "*"
+
+[[packages]]
+name = "gnome-system-monitor"
+version = "*"
+
+[[packages]]
+name = "gnome-terminal"
+version = "*"
+
+[[packages]]
+name = "gnome-terminal-nautilus"
+version = "*"
+
+[[packages]]
+name = "gnome-user-docs"
+version = "*"
+
+[[packages]]
+name = "gvfs-afc"
+version = "*"
+
+[[packages]]
+name = "gvfs-afp"
+version = "*"
+
+[[packages]]
+name = "gvfs-archive"
+version = "*"
+
+[[packages]]
+name = "gvfs-fuse"
+version = "*"
+
+[[packages]]
+name = "gvfs-goa"
+version = "*"
+
+[[packages]]
+name = "gvfs-gphoto2"
+version = "*"
+
+[[packages]]
+name = "gvfs-mtp"
+version = "*"
+
+[[packages]]
+name = "gvfs-smb"
+version = "*"
+
+[[packages]]
+name = "libcanberra-gtk3"
+version = "*"
+
+[[packages]]
+name = "libproxy-webkitgtk4"
+version = "*"
+
+[[packages]]
+name = "librsvg2"
+version = "*"
+
+[[packages]]
+name = "libsane-hpaio"
+version = "*"
+
+[[packages]]
+name = "mesa-dri-drivers"
+version = "*"
+
+[[packages]]
+name = "mesa-libEGL"
+version = "*"
+
+[[packages]]
+name = "nautilus"
+version = "*"
+
+[[packages]]
+name = "orca"
+version = "*"
+
+[[packages]]
+name = "polkit"
+version = "*"
+
+[[packages]]
+name = "tracker"
+version = "*"
+
+[[packages]]
+name = "tracker-miners"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal-gtk"
+version = "*"
+
+[[packages]]
+name = "xdg-user-dirs-gtk"
+version = "*"
+
+[[packages]]
+name = "yelp"
+version = "*"
+
+[[packages]]
+name = "grub2-efi-ia32"
+version = "*"
+
+[[packages]]
+name = "grub2-efi-x64"
+version = "*"
+
+[[packages]]
+name = "grub2-pc"
+version = "*"
+
+[[packages]]
+name = "ostree-grub2"
+version = "*"
+
+[[packages]]
+name = "efibootmgr"
+version = "*"
+
+[[packages]]
+name = "shim-ia32"
+version = "*"
+
+[[packages]]
+name = "shim-x64"
+version = "*"
+
+[[packages]]
+name = "microcode_ctl"
+version = "*"
+
+[[packages]]
+name = "mcelog"
+version = "*"
+
+[[packages]]
+name = "thermald"
+version = "*"
+
+[[packages]]
+name = "hyperv-daemons"
+version = "*"
+
+[[packages]]
+name = "open-vm-tools-desktop"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-drv-intel"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-drv-vesa"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-drv-vmware"
+version = "*"
+
+[[packages]]
+name = "xorg-x11-server-Xwayland"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal"
+version = "*"
+
+[[packages]]
+name = "xdg-desktop-portal-gtk"
+version = "*"
+
+[[packages]]
+name = "qt5"
+version = "5.15.*"
+
+[[packages]]
+name = "qt5-qtapplicationmanager"
+version = "5.15.*"
+
+[[packages]]
+name = "neptune3-ui"
+version = "*"
+
 [[packages]]
 name = "wget"
 version = "*"
-
-[customizations.kernel]
-name = "kernel-rt"
 
 [[customizations.user]]
 name = "admin"
